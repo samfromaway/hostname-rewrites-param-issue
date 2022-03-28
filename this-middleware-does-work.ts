@@ -1,12 +1,9 @@
+// eslint-disable-next-line @next/next/no-server-import-in-page
 import { NextRequest, NextResponse } from 'next/server';
-
-// this _middleware file does not work with query params.
-// I get this one time warning in the server's console as well https://nextjs.org/docs/messages/deleting-query-params-in-middlewares
-// what happens is the query params will be undefined.
-// example url http://localhost:3000/booking?startDate=2022-04-14
 
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const url = req.nextUrl.clone();
   // @ts-ignore
   const redirectTo404 = () => NextResponse.rewrite(new URL('/404', req.url));
 
@@ -24,9 +21,9 @@ export default async function middleware(req: NextRequest) {
     const hostname = req.headers.get('host');
 
     const currentHost = process.env.DEV_ONLY_BRAND_URL || hostname;
-
-    return NextResponse.rewrite(
-      new URL(`/_sites/${currentHost}${pathname}`, req.url)
-    );
+    // rewrite to the current hostname under the pages/sites folder
+    // the main logic component will happen in pages/sites/[site]/index.tsx
+    url.pathname = `/_sites/${currentHost}${url.pathname}`;
+    return NextResponse.rewrite(url);
   }
 }
